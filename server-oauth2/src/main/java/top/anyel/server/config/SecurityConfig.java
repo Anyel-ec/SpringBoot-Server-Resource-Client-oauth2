@@ -30,6 +30,7 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -47,24 +48,33 @@ import java.util.UUID;
 public class SecurityConfig {
 
 
-
-    @Order(1) // Specifies the order of this security filter chain. It has a higher priority (lower number).
-    @Bean // Marks this method as a Spring bean to be managed by the Spring container.
-    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+    @Bean
+    @Order(1)
+    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
+            throws Exception {
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
-                new OAuth2AuthorizationServerConfigurer(); // Configures the OAuth2 Authorization Server.
+                OAuth2AuthorizationServerConfigurer.authorizationServer();
 
-        http.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher()) // Matches requests to the authorization server endpoints.
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated()) // Requires authentication for all requests.
-                .exceptionHandling(exceptions -> exceptions
-                        .defaultAuthenticationEntryPointFor(
-                                new LoginUrlAuthenticationEntryPoint("/login"), // Redirects to the login page for unauthenticated HTML requests.
-                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML) // Applies this behavior only for HTML requests.
-                        )
+        http
+                .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
+                .with(authorizationServerConfigurer, (authorizationServer) ->
+                        authorizationServer
+                                .oidc(Customizer.withDefaults())    // Enable OpenID Connect 1.0
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults())); // Configures the resource server to use JWT for token validation.
+                .authorizeHttpRequests((authorize) ->
+                        authorize
+                                .anyRequest().authenticated()
+                )
+                // Redirect to the login page when not authenticated from the
+                // authorization endpoint
+                .exceptionHandling((exceptions) -> exceptions
+                        .defaultAuthenticationEntryPointFor(
+                                new LoginUrlAuthenticationEntryPoint("/login"),
+                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+                        )
+                );
 
-        return http.build(); // Builds and returns the configured SecurityFilterChain.
+        return http.build();
     }
 
 
