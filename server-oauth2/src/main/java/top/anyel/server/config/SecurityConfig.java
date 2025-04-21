@@ -46,23 +46,25 @@ import java.util.UUID;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Order(1)
-    @Bean
+
+
+    @Order(1) // Specifies the order of this security filter chain. It has a higher priority (lower number).
+    @Bean // Marks this method as a Spring bean to be managed by the Spring container.
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
-                new OAuth2AuthorizationServerConfigurer();
+                new OAuth2AuthorizationServerConfigurer(); // Configures the OAuth2 Authorization Server.
 
-        http.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+        http.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher()) // Matches requests to the authorization server endpoints.
+                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated()) // Requires authentication for all requests.
                 .exceptionHandling(exceptions -> exceptions
                         .defaultAuthenticationEntryPointFor(
-                                new LoginUrlAuthenticationEntryPoint("/login"),
-                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+                                new LoginUrlAuthenticationEntryPoint("/login"), // Redirects to the login page for unauthenticated HTML requests.
+                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML) // Applies this behavior only for HTML requests.
                         )
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults())); // Configures the resource server to use JWT for token validation.
 
-        return http.build();
+        return http.build(); // Builds and returns the configured SecurityFilterChain.
     }
 
 
@@ -95,34 +97,37 @@ public class SecurityConfig {
 
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
-        RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("oidc-client")
-                .clientSecret("{noop}123456789")
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("https://oauthdebugger.com/debug")
-                .scope(OidcScopes.OPENID)
-                .scope(OidcScopes.PROFILE)
-                .scope("read")
-                .scope("write")
-                .build();
+        // Configuration for the OIDC (OpenID Connect) client
+        RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString()) // Generates a unique ID for the client
+                .clientId("oidc-client") // Client ID
+                .clientSecret("{noop}123456789") // Client secret (not encoded, indicated by {noop})
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC) // Client authentication method
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE) // Grant type: Authorization Code
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN) // Grant type: Refresh Token
+                .redirectUri("https://oauthdebugger.com/debug") // Redirect URI for the client
+                .scope(OidcScopes.OPENID) // Scope: OpenID
+                .scope(OidcScopes.PROFILE) // Scope: Profile
+                .scope("read") // Custom scope: Read
+                .scope("write") // Custom scope: Write
+                .build(); // Builds the registered client
 
-        RegisteredClient oauthClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("oauth-client")
-                .clientSecret("{noop}12345678910")
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("http://127.0.0.1:8080/login/oauth2/code/oauth-client")
-                .redirectUri("http://127.0.0.1:8080/authorized")
-                .postLogoutRedirectUri("http://127.0.0.1:8080/logout")
-                .scope(OidcScopes.OPENID)
-                .scope(OidcScopes.PROFILE)
-                .scope("read")
-                .scope("write")
-                .build();
+        // Configuration for the OAuth2 client
+        RegisteredClient oauthClient = RegisteredClient.withId(UUID.randomUUID().toString()) // Generates a unique ID for the client
+                .clientId("oauth-client") // Client ID
+                .clientSecret("{noop}12345678910") // Client secret (not encoded, indicated by {noop})
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC) // Client authentication method
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE) // Grant type: Authorization Code
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN) // Grant type: Refresh Token
+                .redirectUri("http://127.0.0.1:8080/login/oauth2/code/oauth-client") // Redirect URI for the client
+                .redirectUri("http://127.0.0.1:8080/authorized") // Additional redirect URI
+                .postLogoutRedirectUri("http://127.0.0.1:8080/logout") // Post-logout redirect URI
+                .scope(OidcScopes.OPENID) // Scope: OpenID
+                .scope(OidcScopes.PROFILE) // Scope: Profile
+                .scope("read") // Custom scope: Read
+                .scope("write") // Custom scope: Write
+                .build(); // Builds the registered client
 
+        // Returns an in-memory repository containing the registered clients
         return new InMemoryRegisteredClientRepository(oidcClient, oauthClient);
     }
 
