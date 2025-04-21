@@ -128,9 +128,9 @@ public class SecurityConfig {
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC) // Client authentication method
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE) // Grant type: Authorization Code
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN) // Grant type: Refresh Token
-                .redirectUri("http://127.0.0.1:8080/login/oauth2/code/oauth-client") // Redirect URI for the client
-                .redirectUri("http://127.0.0.1:8080/authorized") // Additional redirect URI
-                .postLogoutRedirectUri("http://127.0.0.1:8080/logout") // Post-logout redirect URI
+                .redirectUri("http://localhost:8080/login/oauth2/code/oauth-client") // Redirect URI for the client
+                .redirectUri("http://localhost:8080/authorized") // Additional redirect URI
+                .postLogoutRedirectUri("http://localhost:8080/logout") // Post-logout redirect URI
                 .scope(OidcScopes.OPENID) // Scope: OpenID
                 .scope(OidcScopes.PROFILE) // Scope: Profile
                 .scope("read") // Custom scope: Read
